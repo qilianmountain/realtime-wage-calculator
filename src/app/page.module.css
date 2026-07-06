@@ -70,6 +70,7 @@
 }
 
 .field input,
+.field select,
 .moneyInput {
   width: 100%;
   min-height: 48px;
@@ -86,7 +87,8 @@
     background 0.18s ease;
 }
 
-.field input {
+.field input,
+.field select {
   padding: 0 14px;
 }
 
@@ -111,6 +113,7 @@
 }
 
 .field input:focus,
+.field select:focus,
 .moneyInput:focus-within {
   border-color: #0c687b;
   box-shadow: 0 0 0 3px rgba(12, 104, 123, 0.14);

@@ -4,9 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
 
 type WorkStatus = "before" | "working" | "break" | "after";
+type SalaryMode = "daily" | "monthly" | "annual";
 
 type Settings = {
+  salaryMode: SalaryMode;
   dailyWage: string;
+  monthlySalary: string;
+  monthlyWorkDays: string;
+  annualSalary: string;
+  weeklyWorkDays: string;
   startTime: string;
   endTime: string;
   breakStart: string;
@@ -16,11 +22,22 @@ type Settings = {
 const STORAGE_KEY = "realtime-wage-calculator-settings";
 
 const DEFAULT_SETTINGS: Settings = {
+  salaryMode: "daily",
   dailyWage: "500",
+  monthlySalary: "10875",
+  monthlyWorkDays: "21.75",
+  annualSalary: "130000",
+  weeklyWorkDays: "5",
   startTime: "09:00",
   endTime: "18:00",
   breakStart: "12:00",
   breakEnd: "13:00",
+};
+
+const SALARY_MODE_LABELS: Record<SalaryMode, string> = {
+  daily: "日薪",
+  monthly: "月薪",
+  annual: "年薪",
 };
 
 const STATUS_LABELS: Record<WorkStatus, string> = {
@@ -65,6 +82,29 @@ function formatCurrency(value: number, fractionDigits = 2) {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(value);
+}
+
+function parsePositiveNumber(value: string) {
+  return Math.max(0, Number(value) || 0);
+}
+
+function calculateDailyWage(settings: Settings) {
+  if (settings.salaryMode === "monthly") {
+    const monthlySalary = parsePositiveNumber(settings.monthlySalary);
+    const monthlyWorkDays = parsePositiveNumber(settings.monthlyWorkDays);
+
+    return monthlyWorkDays > 0 ? monthlySalary / monthlyWorkDays : 0;
+  }
+
+  if (settings.salaryMode === "annual") {
+    const annualSalary = parsePositiveNumber(settings.annualSalary);
+    const weeklyWorkDays = parsePositiveNumber(settings.weeklyWorkDays);
+    const annualWorkDays = weeklyWorkDays * 52;
+
+    return annualWorkDays > 0 ? annualSalary / annualWorkDays : 0;
+  }
+
+  return parsePositiveNumber(settings.dailyWage);
 }
 
 function formatDuration(totalSeconds: number) {
@@ -157,7 +197,7 @@ export default function Home() {
   }, [settings]);
 
   const calculation = useMemo(() => {
-    const dailyWage = Math.max(0, Number(settings.dailyWage) || 0);
+    const dailyWage = calculateDailyWage(settings);
     const startSeconds = parseTimeToSeconds(settings.startTime);
     const endSeconds = parseTimeToSeconds(settings.endTime);
     const breakStartSeconds = parseTimeToSeconds(settings.breakStart);
@@ -199,7 +239,7 @@ export default function Home() {
     };
   }, [now, settings]);
 
-  function updateSetting(key: keyof Settings, value: string) {
+  function updateSetting<K extends keyof Settings>(key: K, value: Settings[K]) {
     setSettings((currentSettings) => ({
       ...currentSettings,
       [key]: value,
@@ -217,6 +257,21 @@ export default function Home() {
 
         <div className={styles.formGrid}>
           <label className={styles.field}>
+            <span>薪资模式</span>
+            <select
+              onChange={(event) => updateSetting("salaryMode", event.target.value as SalaryMode)}
+              value={settings.salaryMode}
+            >
+              {Object.entries(SALARY_MODE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {settings.salaryMode === "daily" && (
+          <label className={styles.field}>
             <span>日薪资</span>
             <div className={styles.moneyInput}>
               <span>¥</span>
@@ -230,6 +285,71 @@ export default function Home() {
               />
             </div>
           </label>
+          )}
+
+          {settings.salaryMode === "monthly" && (
+            <>
+              <label className={styles.field}>
+                <span>月薪</span>
+                <div className={styles.moneyInput}>
+                  <span>¥</span>
+                  <input
+                    inputMode="decimal"
+                    min="0"
+                    onChange={(event) => updateSetting("monthlySalary", event.target.value)}
+                    placeholder="10875"
+                    type="number"
+                    value={settings.monthlySalary}
+                  />
+                </div>
+              </label>
+
+              <label className={styles.field}>
+                <span>月工作天数</span>
+                <input
+                  inputMode="decimal"
+                  min="0"
+                  onChange={(event) => updateSetting("monthlyWorkDays", event.target.value)}
+                  placeholder="21.75"
+                  step="0.01"
+                  type="number"
+                  value={settings.monthlyWorkDays}
+                />
+              </label>
+            </>
+          )}
+
+          {settings.salaryMode === "annual" && (
+            <>
+              <label className={styles.field}>
+                <span>年薪</span>
+                <div className={styles.moneyInput}>
+                  <span>¥</span>
+                  <input
+                    inputMode="decimal"
+                    min="0"
+                    onChange={(event) => updateSetting("annualSalary", event.target.value)}
+                    placeholder="130000"
+                    type="number"
+                    value={settings.annualSalary}
+                  />
+                </div>
+              </label>
+
+              <label className={styles.field}>
+                <span>周工作天数</span>
+                <input
+                  inputMode="decimal"
+                  min="0"
+                  onChange={(event) => updateSetting("weeklyWorkDays", event.target.value)}
+                  placeholder="5"
+                  step="0.1"
+                  type="number"
+                  value={settings.weeklyWorkDays}
+                />
+              </label>
+            </>
+          )}
 
           <label className={styles.field}>
             <span>上班时间</span>
