@@ -277,7 +277,7 @@ export default function Home() {
 
         <div className={styles.earnings}>
           <span>当前已赚</span>
-          <strong>{formatCurrency(calculation.earnedWage)}</strong>
+          <strong>{formatCurrency(calculation.earnedWage, 4)}</strong>
         </div>
 
         <div className={styles.progressBlock}>
@@ -296,7 +296,7 @@ export default function Home() {
         <div className={styles.statsGrid}>
           <div>
             <span>今日总工资</span>
-            <strong>{formatCurrency(calculation.dailyWage, 4)}</strong>
+            <strong>{formatCurrency(calculation.dailyWage)}</strong>
           </div>
           <div>
             <span>已计薪时长</span>
