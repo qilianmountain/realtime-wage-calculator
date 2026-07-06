@@ -58,12 +58,12 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function formatCurrency(value: number) {
+function formatCurrency(value: number, fractionDigits = 2) {
   return new Intl.NumberFormat("zh-CN", {
     style: "currency",
     currency: "CNY",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   }).format(value);
 }
 
@@ -296,7 +296,7 @@ export default function Home() {
         <div className={styles.statsGrid}>
           <div>
             <span>今日总工资</span>
-            <strong>{formatCurrency(calculation.dailyWage)}</strong>
+            <strong>{formatCurrency(calculation.dailyWage, 4)}</strong>
           </div>
           <div>
             <span>已计薪时长</span>
@@ -308,7 +308,7 @@ export default function Home() {
           </div>
           <div>
             <span>每秒工资</span>
-            <strong>{formatCurrency(calculation.perSecondWage)}</strong>
+            <strong>{formatCurrency(calculation.perSecondWage, 4)}</strong>
           </div>
         </div>
       </section>
