@@ -63,10 +63,47 @@
   gap: 8px;
 }
 
-.field span {
+.field span,
+.dashboardControl span {
   color: #4e5b52;
   font-size: 13px;
   font-weight: 700;
+}
+
+.dashboardControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  max-width: 260px;
+  min-height: 42px;
+  border: 1px solid #dfe5d8;
+  border-radius: 8px;
+  background: #fbfcf8;
+  padding: 0 10px 0 14px;
+}
+
+.toggleButton {
+  min-width: 82px;
+  min-height: 34px;
+  border: 1px solid rgba(12, 104, 123, 0.28);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0c687b;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.toggleButton[aria-pressed="true"] {
+  border-color: #0c687b;
+  background: #0c687b;
+  color: #ffffff;
 }
 
 .field input,
@@ -168,6 +205,27 @@
   font-weight: 820;
   line-height: 0.98;
   word-break: break-word;
+}
+
+.joyPanel {
+  display: grid;
+  gap: 8px;
+  border-left: 4px solid #d64933;
+  border-radius: 8px;
+  background: #fff7f3;
+  padding: 16px 18px;
+}
+
+.joyPanel span {
+  color: #9f3a29;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.joyPanel strong {
+  color: #19231d;
+  font-size: 24px;
+  line-height: 1.25;
 }
 
 .progressBlock {
