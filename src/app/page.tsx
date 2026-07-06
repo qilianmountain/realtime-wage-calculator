@@ -8,6 +8,7 @@ type SalaryMode = "daily" | "monthly" | "annual";
 
 type Settings = {
   salaryMode: SalaryMode;
+  showJoy: boolean;
   dailyWage: string;
   monthlySalary: string;
   monthlyWorkDays: string;
@@ -23,6 +24,7 @@ const STORAGE_KEY = "realtime-wage-calculator-settings";
 
 const DEFAULT_SETTINGS: Settings = {
   salaryMode: "daily",
+  showJoy: false,
   dailyWage: "500",
   monthlySalary: "10875",
   monthlyWorkDays: "21.75",
@@ -40,6 +42,15 @@ const SALARY_MODE_LABELS: Record<SalaryMode, string> = {
   annual: "年薪",
 };
 
+const JOY_TIERS = [
+  { label: "一副降噪耳机", price: 500 },
+  { label: "一款3A游戏", price: 300 },
+  { label: "一顿疯狂星期四", price: 50 },
+  { label: "一份工作餐", price: 20 },
+  { label: "一根巧乐兹", price: 5 },
+  { label: "一瓶可乐", price: 3 },
+];
+
 const STATUS_LABELS: Record<WorkStatus, string> = {
   before: "未开始",
   working: "工作中",
@@ -48,10 +59,10 @@ const STATUS_LABELS: Record<WorkStatus, string> = {
 };
 
 const STATUS_HINTS: Record<WorkStatus, string> = {
-  before: "今天的工资计时还没有开始",
-  working: "工资正在按秒增加",
+  before: "人为什么要上班",
+  working: "能混一秒是一秒",
   break: "午休时间不计入工资",
-  after: "今天的计薪已经结束",
+  after: "又混到一天工资，你真棒！",
 };
 
 function parseTimeToSeconds(time: string) {
@@ -105,6 +116,36 @@ function calculateDailyWage(settings: Settings) {
   }
 
   return parsePositiveNumber(settings.dailyWage);
+}
+
+function getJoyFeedback(earnedWage: number) {
+  let rest = earnedWage;
+  const matchedItems: Array<(typeof JOY_TIERS)[number] & { count: number }> = [];
+
+  for (const tier of JOY_TIERS) {
+    const count = Math.floor(rest / tier.price);
+
+    if (count > 0) {
+      matchedItems.push({ ...tier, count });
+      rest -= count * tier.price;
+    }
+
+    if (matchedItems.length >= 3) {
+      break;
+    }
+  }
+
+  if (matchedItems.length === 0) {
+    return {
+      title: "还没有匹配商品",
+    };
+  }
+
+  return {
+    title: matchedItems
+      .map((item) => (item.count > 1 ? `${item.count} * ${item.label}` : item.label))
+      .join(" + "),
+  };
 }
 
 function formatDuration(totalSeconds: number) {
@@ -226,10 +267,12 @@ export default function Home() {
       breakStartSeconds,
       breakEndSeconds,
     );
+    const joyFeedback = getJoyFeedback(earnedWage);
 
     return {
       dailyWage,
       earnedWage,
+      joyFeedback,
       paidSeconds,
       perSecondWage,
       progress,
@@ -395,10 +438,29 @@ export default function Home() {
           <span>{STATUS_HINTS[calculation.status]}</span>
         </div>
 
+        <div className={styles.dashboardControl}>
+          <span>趣味反馈</span>
+          <button
+            aria-pressed={settings.showJoy}
+            className={styles.toggleButton}
+            onClick={() => updateSetting("showJoy", !settings.showJoy)}
+            type="button"
+          >
+            {settings.showJoy ? "已开启" : "已关闭"}
+          </button>
+        </div>
+
         <div className={styles.earnings}>
           <span>当前已赚</span>
           <strong>{formatCurrency(calculation.earnedWage, 4)}</strong>
         </div>
+
+        {settings.showJoy && (
+          <div className={styles.joyPanel}>
+            <span>等于挣到</span>
+            <strong>{calculation.joyFeedback.title}</strong>
+          </div>
+        )}
 
         <div className={styles.progressBlock}>
           <div className={styles.progressMeta}>
