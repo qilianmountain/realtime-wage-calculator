@@ -494,6 +494,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <p className={styles.credit}>Created by 祁连山</p>
     </main>
   );
 }

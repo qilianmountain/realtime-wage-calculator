@@ -282,6 +282,14 @@
   line-height: 1.25;
 }
 
+.credit {
+  grid-column: 1 / -1;
+  color: #9aa39a;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 @media (max-width: 860px) {
   .page {
     grid-template-columns: 1fr;
