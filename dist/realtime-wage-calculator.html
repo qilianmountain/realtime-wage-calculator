@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>实时工资计算器</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        color: #18201d;
+        background:
+          linear-gradient(135deg, rgba(12, 104, 123, 0.09), transparent 34%),
+          linear-gradient(315deg, rgba(214, 73, 51, 0.08), transparent 38%),
+          #f6f7f2;
+        font-family: Arial, Helvetica, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .page {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: minmax(320px, 430px) minmax(420px, 1fr);
+        gap: 24px;
+        padding: 32px;
+      }
+
+      .panel,
+      .dashboard {
+        border: 1px solid #d7ddd0;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 18px 50px rgba(35, 45, 38, 0.08);
+      }
+
+      .panel {
+        align-self: start;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        padding: 28px;
+      }
+
+      .heading {
+        display: grid;
+        gap: 12px;
+      }
+
+      .kicker {
+        color: #0c687b;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.3;
+        text-transform: uppercase;
+      }
+
+      .heading h1 {
+        color: #14201a;
+        font-size: 36px;
+        font-weight: 760;
+        line-height: 1.12;
+      }
+
+      .heading p:not(.kicker) {
+        color: #647067;
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field span,
+      .dashboard-control span {
+        color: #4e5b52;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .dashboard-control {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        max-width: 260px;
+        min-height: 42px;
+        border: 1px solid #dfe5d8;
+        border-radius: 8px;
+        background: #fbfcf8;
+        padding: 0 10px 0 14px;
+      }
+
+      .toggle-button {
+        min-width: 82px;
+        min-height: 34px;
+        border: 1px solid rgba(12, 104, 123, 0.28);
+        border-radius: 999px;
+        background: #ffffff;
+        color: #0c687b;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        transition:
+          background 0.18s ease,
+          border-color 0.18s ease,
+          color 0.18s ease;
+      }
+
+      .toggle-button[aria-pressed="true"] {
+        border-color: #0c687b;
+        background: #0c687b;
+        color: #ffffff;
+      }
+
+      .field input,
+      .field select,
+      .money-input {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid #cbd3c5;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #16201a;
+        font: inherit;
+        font-size: 16px;
+        outline: none;
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          background 0.18s ease;
+      }
+
+      .field input,
+      .field select {
+        padding: 0 14px;
+      }
+
+      .money-input {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 8px;
+        padding: 0 14px;
+      }
+
+      .money-input span {
+        color: #0c687b;
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .money-input input {
+        min-height: 44px;
+        border: 0;
+        padding: 0;
+      }
+
+      .field input:focus,
+      .field select:focus,
+      .money-input:focus-within {
+        border-color: #0c687b;
+        box-shadow: 0 0 0 3px rgba(12, 104, 123, 0.14);
+      }
+
+      .dashboard {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 28px;
+        padding: 36px;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        color: #5f6a62;
+        font-size: 15px;
+      }
+
+      .status-pill {
+        min-width: 80px;
+        border: 1px solid rgba(12, 104, 123, 0.2);
+        border-radius: 999px;
+        padding: 7px 12px;
+        background: #e8f5f4;
+        color: #0c687b;
+        font-size: 13px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .earnings {
+        display: grid;
+        gap: 8px;
+      }
+
+      .earnings span,
+      .progress-meta span,
+      .stats-grid span {
+        color: #667167;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .earnings strong {
+        color: #10201a;
+        font-size: clamp(48px, 9vw, 104px);
+        font-weight: 820;
+        line-height: 0.98;
+        word-break: break-word;
+      }
+
+      .joy-panel {
+        display: grid;
+        gap: 8px;
+        border-left: 4px solid #d64933;
+        border-radius: 8px;
+        background: #fff7f3;
+        padding: 16px 18px;
+      }
+
+      .joy-panel span {
+        color: #9f3a29;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .joy-panel strong {
+        color: #19231d;
+        font-size: 24px;
+        line-height: 1.25;
+      }
+
+      .progress-block {
+        display: grid;
+        gap: 12px;
+      }
+
+      .progress-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .progress-meta strong {
+        color: #0c687b;
+        font-size: 20px;
+      }
+
+      .progress-track {
+        height: 14px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2e8dc;
+      }
+
+      .progress-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #0c687b, #d64933);
+        transition: width 0.28s ease;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .stats-grid div {
+        min-height: 96px;
+        display: grid;
+        align-content: center;
+        gap: 10px;
+        border: 1px solid #dfe5d8;
+        border-radius: 8px;
+        background: #fbfcf8;
+        padding: 16px;
+      }
+
+      .stats-grid strong {
+        color: #1b2820;
+        font-size: 20px;
+        line-height: 1.25;
+      }
+
+      .credit {
+        grid-column: 1 / -1;
+        color: #9aa39a;
+        font-size: 13px;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      @media (max-width: 860px) {
+        .page {
+          grid-template-columns: 1fr;
+          padding: 18px;
+        }
+
+        .panel,
+        .dashboard {
+          padding: 22px;
+        }
+
+        .heading h1 {
+          font-size: 30px;
+        }
+
+        .earnings strong {
+          font-size: clamp(44px, 16vw, 72px);
+        }
+      }
+
+      @media (max-width: 560px) {
+        .page {
+          padding: 12px;
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .status-row {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="panel">
+        <div class="heading">
+          <p class="kicker">Realtime Wage Calculator</p>
+          <h1>实时工资计算器</h1>
+          <p>输入今天的工资和工作时间，看看此刻已经赚到了多少。</p>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>薪资模式</span>
+            <select id="salaryMode">
+              <option value="daily">日薪</option>
+              <option value="monthly">月薪</option>
+              <option value="annual">年薪</option>
+            </select>
+          </label>
+
+          <label class="field salary-field" data-mode="daily">
+            <span>日薪资</span>
+            <div class="money-input">
+              <span>¥</span>
+              <input id="dailyWage" inputmode="decimal" min="0" placeholder="500" type="number" />
+            </div>
+          </label>
+
+          <div class="salary-field" data-mode="monthly">
+            <label class="field">
+              <span>月薪</span>
+              <div class="money-input">
+                <span>¥</span>
+                <input id="monthlySalary" inputmode="decimal" min="0" placeholder="10875" type="number" />
+              </div>
+            </label>
+            <label class="field" style="margin-top: 18px">
+              <span>月工作天数</span>
+              <input
+                id="monthlyWorkDays"
+                inputmode="decimal"
+                min="0"
+                placeholder="21.75"
+                step="0.01"
+                type="number"
+              />
+            </label>
+          </div>
+
+          <div class="salary-field" data-mode="annual">
+            <label class="field">
+              <span>年薪</span>
+              <div class="money-input">
+                <span>¥</span>
+                <input id="annualSalary" inputmode="decimal" min="0" placeholder="130000" type="number" />
+              </div>
+            </label>
+            <label class="field" style="margin-top: 18px">
+              <span>周工作天数</span>
+              <input
+                id="weeklyWorkDays"
+                inputmode="decimal"
+                min="0"
+                placeholder="5"
+                step="0.1"
+                type="number"
+              />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>上班时间</span>
+            <input id="startTime" type="time" />
+          </label>
+
+          <label class="field">
+            <span>下班时间</span>
+            <input id="endTime" type="time" />
+          </label>
+
+          <label class="field">
+            <span>午休开始</span>
+            <input id="breakStart" type="time" />
+          </label>
+
+          <label class="field">
+            <span>午休结束</span>
+            <input id="breakEnd" type="time" />
+          </label>
+        </div>
+      </section>
+
+      <section class="dashboard" aria-live="polite">
+        <div class="status-row">
+          <div class="status-pill" id="statusLabel"></div>
+          <span id="statusHint"></span>
+        </div>
+
+        <div class="dashboard-control">
+          <span>趣味反馈</span>
+          <button class="toggle-button" id="joyToggle" type="button" aria-pressed="false">已关闭</button>
+        </div>
+
+        <div class="earnings">
+          <span>当前已赚</span>
+          <strong id="earnedWage"></strong>
+        </div>
+
+        <div class="joy-panel hidden" id="joyPanel">
+          <span>约等于挣到</span>
+          <strong id="joyTitle"></strong>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-meta">
+            <span>今日进度</span>
+            <strong id="progressText"></strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div>
+            <span>今日总工资</span>
+            <strong id="dailyWageStat"></strong>
+          </div>
+          <div>
+            <span>已计薪时长</span>
+            <strong id="paidDuration"></strong>
+          </div>
+          <div>
+            <span>计薪总时长</span>
+            <strong id="totalDuration"></strong>
+          </div>
+          <div>
+            <span>每秒工资</span>
+            <strong id="perSecondWage"></strong>
+          </div>
+        </div>
+      </section>
+      <p class="credit">Created by 祁连山</p>
+    </main>
+
+    <script>
+      const STORAGE_KEY = "realtime-wage-calculator-settings";
+
+      const DEFAULT_SETTINGS = {
+        salaryMode: "daily",
+        showJoy: false,
+        dailyWage: "500",
+        monthlySalary: "10875",
+        monthlyWorkDays: "21.75",
+        annualSalary: "130000",
+        weeklyWorkDays: "5",
+        startTime: "09:00",
+        endTime: "18:00",
+        breakStart: "12:00",
+        breakEnd: "13:00",
+      };
+
+      const STATUS_LABELS = {
+        before: "未开始",
+        working: "工作中",
+        break: "午休中",
+        after: "已下班",
+      };
+
+      const STATUS_HINTS = {
+        before: "人为什么要上班",
+        working: "能混一秒是一秒",
+        break: "午休时间不计入工资",
+        after: "又混到一天工资，你真棒！",
+      };
+
+      const JOY_TIERS = [
+        { label: "一副降噪耳机", price: 500 },
+        { label: "一款3A游戏", price: 300 },
+        { label: "一顿疯狂星期四", price: 50 },
+        { label: "一份工作餐", price: 20 },
+        { label: "一根巧乐兹", price: 5 },
+        { label: "一瓶可乐", price: 3 },
+      ];
+
+      const fields = [
+        "salaryMode",
+        "dailyWage",
+        "monthlySalary",
+        "monthlyWorkDays",
+        "annualSalary",
+        "weeklyWorkDays",
+        "startTime",
+        "endTime",
+        "breakStart",
+        "breakEnd",
+      ];
+
+      let settings = loadSettings();
+
+      function loadSettings() {
+        const saved = window.localStorage.getItem(STORAGE_KEY);
+
+        if (!saved) {
+          return { ...DEFAULT_SETTINGS };
+        }
+
+        try {
+          return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+        } catch {
+          window.localStorage.removeItem(STORAGE_KEY);
+          return { ...DEFAULT_SETTINGS };
+        }
+      }
+
+      function saveSettings() {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      }
+
+      function parseTimeToSeconds(time) {
+        const [hour, minute] = String(time).split(":").map(Number);
+
+        if (
+          Number.isNaN(hour) ||
+          Number.isNaN(minute) ||
+          hour < 0 ||
+          hour > 23 ||
+          minute < 0 ||
+          minute > 59
+        ) {
+          return 0;
+        }
+
+        return hour * 3600 + minute * 60;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function formatCurrency(value, fractionDigits = 2) {
+        return new Intl.NumberFormat("zh-CN", {
+          style: "currency",
+          currency: "CNY",
+          minimumFractionDigits: fractionDigits,
+          maximumFractionDigits: fractionDigits,
+        }).format(value);
+      }
+
+      function parsePositiveNumber(value) {
+        return Math.max(0, Number(value) || 0);
+      }
+
+      function calculateDailyWage() {
+        if (settings.salaryMode === "monthly") {
+          const monthlySalary = parsePositiveNumber(settings.monthlySalary);
+          const monthlyWorkDays = parsePositiveNumber(settings.monthlyWorkDays);
+          return monthlyWorkDays > 0 ? monthlySalary / monthlyWorkDays : 0;
+        }
+
+        if (settings.salaryMode === "annual") {
+          const annualSalary = parsePositiveNumber(settings.annualSalary);
+          const weeklyWorkDays = parsePositiveNumber(settings.weeklyWorkDays);
+          const annualWorkDays = weeklyWorkDays * 52;
+          return annualWorkDays > 0 ? annualSalary / annualWorkDays : 0;
+        }
+
+        return parsePositiveNumber(settings.dailyWage);
+      }
+
+      function getJoyFeedback(earnedWage) {
+        let rest = earnedWage;
+        const matchedItems = [];
+
+        for (const tier of JOY_TIERS) {
+          const count = Math.floor(rest / tier.price);
+
+          if (count > 0) {
+            matchedItems.push({ ...tier, count });
+            rest -= count * tier.price;
+          }
+
+          if (matchedItems.length >= 3) {
+            break;
+          }
+        }
+
+        if (matchedItems.length === 0) {
+          return "还没有匹配商品";
+        }
+
+        return matchedItems
+          .map((item) => (item.count > 1 ? `${item.count} * ${item.label}` : item.label))
+          .join(" + ");
+      }
+
+      function formatDuration(totalSeconds) {
+        const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+        const hours = Math.floor(safeSeconds / 3600);
+        const minutes = Math.floor((safeSeconds % 3600) / 60);
+        const seconds = safeSeconds % 60;
+
+        return `${hours}小时 ${String(minutes).padStart(2, "0")}分 ${String(seconds).padStart(2, "0")}秒`;
+      }
+
+      function getSecondsSinceMidnight(date) {
+        return date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
+      }
+
+      function calculatePaidSeconds(nowSeconds, startSeconds, endSeconds, breakStartSeconds, breakEndSeconds) {
+        if (nowSeconds <= startSeconds) {
+          return 0;
+        }
+
+        const cappedNow = Math.min(nowSeconds, endSeconds);
+        const elapsed = clamp(cappedNow - startSeconds, 0, endSeconds - startSeconds);
+        const breakOverlap = Math.max(
+          0,
+          Math.min(cappedNow, breakEndSeconds) - Math.max(startSeconds, breakStartSeconds),
+        );
+
+        return Math.max(0, elapsed - breakOverlap);
+      }
+
+      function getStatus(nowSeconds, startSeconds, endSeconds, breakStartSeconds, breakEndSeconds) {
+        if (nowSeconds < startSeconds) {
+          return "before";
+        }
+
+        if (nowSeconds >= endSeconds) {
+          return "after";
+        }
+
+        if (nowSeconds >= breakStartSeconds && nowSeconds < breakEndSeconds) {
+          return "break";
+        }
+
+        return "working";
+      }
+
+      function syncFields() {
+        for (const key of fields) {
+          const input = document.getElementById(key);
+          input.value = settings[key];
+        }
+
+        const joyToggle = document.getElementById("joyToggle");
+        joyToggle.setAttribute("aria-pressed", String(settings.showJoy));
+        joyToggle.textContent = settings.showJoy ? "已开启" : "已关闭";
+
+        document.querySelectorAll(".salary-field").forEach((field) => {
+          field.classList.toggle("hidden", field.dataset.mode !== settings.salaryMode);
+        });
+      }
+
+      function updateDashboard() {
+        const dailyWage = calculateDailyWage();
+        const startSeconds = parseTimeToSeconds(settings.startTime);
+        const endSeconds = parseTimeToSeconds(settings.endTime);
+        const breakStartSeconds = parseTimeToSeconds(settings.breakStart);
+        const breakEndSeconds = parseTimeToSeconds(settings.breakEnd);
+        const workSeconds = Math.max(0, endSeconds - startSeconds);
+        const breakSeconds = Math.max(
+          0,
+          Math.min(endSeconds, breakEndSeconds) - Math.max(startSeconds, breakStartSeconds),
+        );
+        const totalPaidSeconds = Math.max(0, workSeconds - breakSeconds);
+        const nowSeconds = getSecondsSinceMidnight(new Date());
+        const paidSeconds = calculatePaidSeconds(
+          nowSeconds,
+          startSeconds,
+          endSeconds,
+          breakStartSeconds,
+          breakEndSeconds,
+        );
+        const progress = totalPaidSeconds > 0 ? clamp(paidSeconds / totalPaidSeconds, 0, 1) : 0;
+        const earnedWage = dailyWage * progress;
+        const perSecondWage = totalPaidSeconds > 0 ? dailyWage / totalPaidSeconds : 0;
+        const status = getStatus(nowSeconds, startSeconds, endSeconds, breakStartSeconds, breakEndSeconds);
+
+        document.getElementById("statusLabel").textContent = STATUS_LABELS[status];
+        document.getElementById("statusHint").textContent = STATUS_HINTS[status];
+        document.getElementById("earnedWage").textContent = formatCurrency(earnedWage, 4);
+        document.getElementById("progressText").textContent = `${Math.round(progress * 100)}%`;
+        document.getElementById("progressFill").style.width = `${progress * 100}%`;
+        document.getElementById("dailyWageStat").textContent = formatCurrency(dailyWage);
+        document.getElementById("paidDuration").textContent = formatDuration(paidSeconds);
+        document.getElementById("totalDuration").textContent = formatDuration(totalPaidSeconds);
+        document.getElementById("perSecondWage").textContent = formatCurrency(perSecondWage, 4);
+        document.getElementById("joyTitle").textContent = getJoyFeedback(earnedWage);
+        document.getElementById("joyPanel").classList.toggle("hidden", !settings.showJoy);
+      }
+
+      for (const key of fields) {
+        document.getElementById(key).addEventListener("input", (event) => {
+          settings = { ...settings, [key]: event.target.value };
+          saveSettings();
+          syncFields();
+          updateDashboard();
+        });
+      }
+
+      document.getElementById("joyToggle").addEventListener("click", () => {
+        settings = { ...settings, showJoy: !settings.showJoy };
+        saveSettings();
+        syncFields();
+        updateDashboard();
+      });
+
+      syncFields();
+      updateDashboard();
+      window.setInterval(updateDashboard, 1000);
+    </script>
+  </body>
+</html>
