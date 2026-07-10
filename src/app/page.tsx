@@ -495,7 +495,12 @@ export default function Home() {
         </div>
       </section>
 
-      <p className={styles.credit}>Created by 祁连山</p>
+      <div className={styles.credit}>
+        <span>Created by 祁连山</span>
+        <a href="https://github.com/qilianmountain" rel="noreferrer" target="_blank">
+          关注作者
+        </a>
+      </div>
     </main>
   );
 }

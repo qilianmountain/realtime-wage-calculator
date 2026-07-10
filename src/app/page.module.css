@@ -284,10 +284,33 @@
 
 .credit {
   grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
   color: #9aa39a;
   font-size: 13px;
   line-height: 1.4;
   text-align: center;
+}
+
+.credit a {
+  border: 1px solid rgba(154, 163, 154, 0.45);
+  border-radius: 999px;
+  padding: 3px 9px;
+  color: #7d877e;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background 0.18s ease;
+}
+
+.credit a:hover {
+  border-color: rgba(12, 104, 123, 0.3);
+  background: rgba(255, 255, 255, 0.5);
+  color: #0c687b;
 }
 
 @media (max-width: 860px) {
